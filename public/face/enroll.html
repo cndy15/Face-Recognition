@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enroll Wajah Baru</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+    }
+    
+    h2 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+    
+    h2::before {
+      content: "📸 ";
+    }
+    
+    .section {
+      margin-bottom: 40px;
+    }
+    
+    h3 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 20px;
+      text-align: center;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      font-weight: 500;
+      color: #555;
+      display: block;
+      margin-bottom: 8px;
+    }
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      border: 2px dashed #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color 0.3s;
+    }
+    
+    input[type="file"]:hover {
+      border-color: #667eea;
+    }
+    
+    button {
+      width: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 10px;
+    }
+    
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .status {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+      display: none;
+    }
+    
+    .status.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .status.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .status.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .status.loading {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    
+    hr {
+      border: none;
+      border-top: 2px solid #e0e0e0;
+      margin: 40px 0;
+    }
+    
+    .video-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      min-height: 50px;
+    }
+    
+    video {
+      border: 3px solid #667eea;
+      border-radius: 12px;
+      max-width: 100%;
+      height: auto;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      display: none;
+    }
+    
+    video.active {
+      display: block;
+    }
+    
+    #cameraStatus {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 8px;
+    }
+    
+    .file-info {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Enroll Wajah Baru</h2>
+
+    <!-- Section 1: Upload Manual -->
+    <div class="section">
+      <h3>Upload dari File</h3>
+      
+      <form id="uploadForm">
+        <div class="form-group">
+          <label for="name">Nama Lengkap</label>
+          <input type="text" id="name" placeholder="Masukkan nama lengkap" required />
+        </div>
+        
+        <div class="form-group">
+          <label for="file">Pilih Foto Wajah</label>
+          <input type="file" id="file" accept="image/*" required>
+          <div class="file-info">Format: JPG, PNG, GIF (Max 5MB)</div>
+        </div>
+        
+        <button type="submit" id="uploadBtn">💾 Simpan Wajah</button>
+      </form>
+      
+      <div id="status" class="status"></div>
+    </div>
+
+    <hr>
+
+    <!-- Section 2: Webcam -->
+    <div class="section">
+      <h3>Daftar dari Webcam</h3>
+      
+      <div id="cameraStatus">📷 Klik tombol untuk mengaktifkan kamera</div>
+      
+      <div class="video-container">
+        <video id="video" width="400" height="300" autoplay muted></video>
+      </div>
+      
+      <div class="form-group">
+        <input type="text" id="nameCam" placeholder="Masukkan nama lengkap" />
+      </div>
+      
+      <button id="startCamera">🎥 Aktifkan Kamera</button>
+      <button id="capture" style="display: none;">📸 Tangkap & Simpan Wajah</button>
+      
+      <div id="statusCam" class="status"></div>
+    </div>
+  </div>
+
+  <script>
+    // ===== KONFIGURASI =====
+    const API_URL = 'http://127.0.0.1:8000/face/enroll';
+    
+    // ===== ELEMEN DOM =====
+    const uploadForm = document.getElementById('uploadForm');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const statusDiv = document.getElementById('status');
+    
+    const video = document.getElementById('video');
+    const startCameraBtn = document.getElementById('startCamera');
+    const captureBtn = document.getElementById('capture');
+    const statusCamDiv = document.getElementById('statusCam');
+    const cameraStatus = document.getElementById('cameraStatus');
+    
+    let stream = null;
+
+    // ===== HELPER FUNCTIONS =====
+    function showStatus(element, message, type) {
+      element.textContent = message;
+      element.className = `status show ${type}`;
+      
+      if (type === 'success' || type === 'error') {
+        setTimeout(() => {
+          element.classList.remove('show');
+        }, 5000);
+      }
+    }
+
+    function disableButton(button, disabled = true) {
+      button.disabled = disabled;
+    }
+
+    // ===== SECTION 1: UPLOAD MANUAL =====
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('name').value.trim();
+      const fileInput = document.getElementById('file');
+      const file = fileInput.files[0];
+
+      // Validasi
+      if (!name || !file) {
+        showStatus(statusDiv, "⚠️ Lengkapi nama dan foto!", "error");
+        return;
+      }
+
+      if (!file.type.startsWith('image/')) {
+        showStatus(statusDiv, "⚠️ File harus berupa gambar!", "error");
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        showStatus(statusDiv, "⚠️ Ukuran file maksimal 5MB!", "error");
+        return;
+      }
+
+      // Prepare data
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('image', file);
+
+      disableButton(uploadBtn);
+      showStatus(statusDiv, "⏳ Mengunggah dan memproses wajah...", "loading");
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: formData
+        });
+
+        console.log('Response status:', response.status);
+        
+        // Cek content type
+        const contentType = response.headers.get('content-type');
+        console.log('Content-Type:', contentType);
+        
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('Server response (HTML):', text);
+          throw new Error('Server mengembalikan HTML, bukan JSON. Cek route backend!');
+        }
+
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (response.ok && data.success) {
+          showStatus(statusDiv, data.message || "✅ Wajah berhasil disimpan!", "success");
+          uploadForm.reset();
+        } else {
+          showStatus(statusDiv, data.message || "❌ Gagal menyimpan wajah", "error");
+        }
+
+      } catch (err) {
+        console.error('Upload error:', err);
+        
+        let errorMsg = "❌ Gagal menyimpan wajah";
+        if (err.message.includes("JSON")) {
+          errorMsg = "❌ Server error: Backend tidak mengembalikan JSON. Pastikan route /face/enroll ada!";
+        } else if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError")) {
+          errorMsg = "❌ Tidak dapat terhubung ke server. Pastikan Laravel berjalan di port 8000!";
+        } else {
+          errorMsg = "❌ " + err.message;
+        }
+        
+        showStatus(statusDiv, errorMsg, "error");
+      } finally {
+        disableButton(uploadBtn, false);
+      }
+    });
+
+    // ===== SECTION 2: WEBCAM =====
+    
+    // Start Camera
+    startCameraBtn.addEventListener('click', async () => {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Browser tidak mendukung akses webcam');
+        }
+
+        disableButton(startCameraBtn);
+        cameraStatus.textContent = "⏳ Mengaktifkan kamera...";
+        cameraStatus.style.backgroundColor = "#fff3cd";
+
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: 400, 
+            height: 300,
+            facingMode: 'user'
+          } 
+        });
+        
+        video.srcObject = stream;
+        video.classList.add('active');
+        
+        startCameraBtn.style.display = 'none';
+        captureBtn.style.display = 'block';
+        
+        cameraStatus.textContent = "✅ Kamera aktif. Posisikan wajah Anda dengan baik!";
+        cameraStatus.style.backgroundColor = "#d4edda";
+        cameraStatus.style.color = "#155724";
+        
+      } catch (error) {
+        console.error('Camera error:', error);
+        
+        let errorMessage = '';
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          errorMessage = '⛔ Akses kamera ditolak! Klik ikon kamera di address bar untuk mengizinkan.';
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          errorMessage = '📷 Kamera tidak ditemukan! Pastikan kamera terhubung.';
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+          errorMessage = '🔒 Kamera sedang digunakan aplikasi lain!';
+        } else {
+          errorMessage = '❌ Gagal mengakses kamera: ' + error.message;
+        }
+        
+        cameraStatus.textContent = errorMessage;
+        cameraStatus.style.backgroundColor = "#f8d7da";
+        cameraStatus.style.color = "#721c24";
+        disableButton(startCameraBtn, false);
+      }
+    });
+
+    // Capture and Save
+    captureBtn.addEventListener('click', async () => {
+      const name = document.getElementById('nameCam').value.trim();
+      
+      if (!name) {
+        showStatus(statusCamDiv, "⚠️ Isi nama terlebih dahulu!", "error");
+        return;
+      }
+
+      if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+        showStatus(statusCamDiv, "⚠️ Tunggu kamera siap!", "error");
+        return;
+      }
+
+      disableButton(captureBtn);
+      showStatus(statusCamDiv, "⏳ Mengambil dan menyimpan foto...", "loading");
+
+      try {
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Convert to blob dengan Promise
+        const blob = await new Promise((resolve, reject) => {
+          canvas.toBlob((b) => {
+            if (b) {
+              resolve(b);
+            } else {
+              reject(new Error('Gagal membuat blob dari canvas'));
+            }
+          }, 'image/jpeg', 0.95);
+        });
+
+        console.log('Blob created:', blob.size, 'bytes');
+
+        // Prepare form data
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('image', blob, `${name}_${Date.now()}.jpg`);
+
+        // Send to server
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: formData
+        });
+
+        console.log('Response status:', response.status);
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('Server response (HTML):', text);
+          throw new Error('Server mengembalikan HTML, bukan JSON. Cek route backend!');
+        }
+
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (response.ok && data.success) {
+          showStatus(statusCamDiv, data.message || "✅ Wajah berhasil disimpan dari webcam!", "success");
+          document.getElementById('nameCam').value = '';
+        } else {
+          showStatus(statusCamDiv, data.message || "❌ Gagal menyimpan wajah", "error");
+        }
+
+      } catch (err) {
+        console.error('Capture error:', err);
+        
+        let errorMsg = "❌ Gagal menyimpan dari webcam";
+        if (err.message.includes("JSON")) {
+          errorMsg = "❌ Server error: Backend tidak mengembalikan JSON!";
+        } else if (err.message.includes("Failed to fetch")) {
+          errorMsg = "❌ Tidak dapat terhubung ke server!";
+        } else {
+          errorMsg = "❌ " + err.message;
+        }
+        
+        showStatus(statusCamDiv, errorMsg, "error");
+      } finally {
+        disableButton(captureBtn, false);
+      }
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    });
+
+    // Log untuk debugging
+    console.log('=== Enroll Page Loaded ===');
+    console.log('API URL:', API_URL);
+  </script>
+</body>
+</html>

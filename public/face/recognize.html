@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Face Recognition</title>
+  
+  <!-- Load face-api dari CDN atau lokal -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+  
+  <style>
+    body {
+      background-color: #eef2ff;
+      text-align: center;
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin-top: 20px;
+      color: #2b2b52;
+    }
+    .container {
+      display: inline-block;
+      position: relative;
+      margin-top: 20px;
+    }
+    video {
+      border: 3px solid #2b2b52;
+      border-radius: 10px;
+      display: block;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+    #status {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #4a90e2;
+    }
+    .alert {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 9999;
+      max-width: 400px;
+      display: none;
+    }
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .alert-danger {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+  <h1>👁️ Live Face Recognition</h1>
+  
+  <div class="container">
+    <video id="video" width="640" height="480" autoplay muted></video>
+    <canvas id="overlay" width="640" height="480"></canvas>
+  </div>
+  
+  <p id="status">⏳ Memuat model...</p>
+  
+  <!-- Message Box -->
+  <div id="messageBox" class="alert"></div>
+
+  <script>
+    // ===== DOM Elements =====
+    const video = document.getElementById('video');
+    const status = document.getElementById('status');
+    const overlay = document.getElementById('overlay');
+    const canvasCtx = overlay.getContext('2d');
+    const messageBox = document.getElementById('messageBox');
+
+    // ===== Configuration =====
+    const MODEL_URL = '/face/models'; // Sesuaikan dengan path model Anda
+
+    // ===== Helper Functions =====
+    function showMessage(message, type) {
+      messageBox.textContent = message;
+      messageBox.className = `alert alert-${type === 'success' ? 'success' : 'danger'}`;
+      messageBox.style.display = 'block';
+      
+      setTimeout(() => {
+        messageBox.style.display = 'none';
+      }, 5000);
+    }
+
+    // ===== Initialize Everything =====
+    async function init() {
+      try {
+        // 1. Load face-api models
+        status.textContent = '⏳ Memuat model AI...';
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+        ]);
+        console.log('✅ Model berhasil dimuat');
+        
+        // 2. Start webcam
+        await startVideo();
+        
+      } catch (error) {
+        console.error('Error initialization:', error);
+        status.textContent = '❌ Gagal memuat sistem';
+        showMessage('❌ Gagal menginisialisasi sistem: ' + error.message, 'error');
+      }
+    }
+
+    // ===== Start Webcam =====
+    async function startVideo() {
+      try {
+        // Cek browser support
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Browser tidak mendukung akses webcam');
+        }
+
+        status.textContent = '📷 Mengaktifkan kamera...';
+        
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: 640, 
+            height: 480,
+            facingMode: 'user'
+          } 
+        });
+        
+        video.srcObject = stream;
+        status.textContent = '✅ Kamera aktif. Mendeteksi wajah...';
+        showMessage('✅ Webcam berhasil diaktifkan!', 'success');
+        
+      } catch (error) {
+        console.error('Error accessing webcam:', error);
+        
+        // Handle berbagai jenis error
+        let errorMessage = '';
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          errorMessage = '⛔ Akses webcam ditolak! Klik ikon kunci di address bar dan izinkan akses kamera.';
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          errorMessage = '📷 Webcam tidak ditemukan! Pastikan webcam terhubung dengan baik.';
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+          errorMessage = '🔒 Webcam sedang digunakan aplikasi lain! Tutup aplikasi lain yang menggunakan webcam.';
+        } else {
+          errorMessage = '❌ Gagal mengakses webcam: ' + error.message;
+        }
+        
+        status.textContent = errorMessage;
+        showMessage(errorMessage, 'error');
+      }
+    }
+
+    // ===== Face Detection Loop =====
+    video.addEventListener('play', () => {
+      const displaySize = { width: video.width, height: video.height };
+      faceapi.matchDimensions(overlay, displaySize);
+
+      setInterval(async () => {
+        try {
+          const detections = await faceapi.detectAllFaces(
+            video,
+            new faceapi.TinyFaceDetectorOptions()
+          ).withFaceLandmarks().withFaceDescriptors();
+
+          // Clear canvas
+          canvasCtx.clearRect(0, 0, overlay.width, overlay.height);
+
+          if (detections.length > 0) {
+            const resizedDetections = faceapi.resizeResults(detections, displaySize);
+            
+            // Draw detections
+            faceapi.draw.drawDetections(overlay, resizedDetections);
+            faceapi.draw.drawFaceLandmarks(overlay, resizedDetections);
+            
+            // Update status
+            status.textContent = `✅ Terdeteksi ${detections.length} wajah`;
+          } else {
+            status.textContent = '👀 Mencari wajah...';
+          }
+        } catch (error) {
+          console.error('Error detecting faces:', error);
+        }
+      }, 100);
+    });
+
+    // ===== Start Application =====
+    // Tunggu hingga face-api.js selesai dimuat
+    window.addEventListener('load', () => {
+      if (typeof faceapi === 'undefined') {
+        status.textContent = '❌ face-api.js gagal dimuat';
+        showMessage('❌ Library face-api.js tidak dapat dimuat. Periksa koneksi internet.', 'error');
+      } else {
+        init();
+      }
+    });
+  </script>
+</body>
+</html>
